@@ -166,8 +166,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const router = useRouter()
+const toast = useAppToast()
 const plans = ref([])
 const modules = ref([])
 const showCreateModal = ref(false)
@@ -242,20 +244,21 @@ const editPlan = (plan) => {
 }
 
 const deletePlan = async (plan) => {
-  if (!confirm(`Are you sure you want to delete the "${plan.name}" plan?`)) return
-  
+  if (!window.confirm(`Are you sure you want to delete the "${plan.name}" plan?`)) return
+
   try {
     await api.delete(`/super-admin/plans/${plan.id}`)
     await fetchPlans()
+    toast.success('Plan deleted successfully')
   } catch (error) {
     console.error('Error deleting plan:', error)
-    alert(error.response?.data?.message || 'Failed to delete plan')
+    toast.error(error.response?.data?.message || 'Failed to delete plan')
   }
 }
 
 const savePlan = async () => {
   if (!formData.value.name) {
-    alert('Please provide a plan name')
+    toast.error('Please provide a plan name')
     return
   }
 
@@ -274,9 +277,10 @@ const savePlan = async () => {
 
     closeModal()
     await fetchPlans()
+    toast.success(editingPlan.value ? 'Plan updated successfully' : 'Plan created successfully')
   } catch (error) {
     console.error('Error saving plan:', error)
-    alert('Failed to save plan')
+    toast.error('Failed to save plan')
   }
 }
 

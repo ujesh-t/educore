@@ -295,8 +295,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const route = useRoute()
+const toast = useAppToast()
 const subscription = ref(null)
 const modules = ref([])
 const auditLogs = ref([])
@@ -337,12 +339,12 @@ const fetchSubscription = async () => {
     subscription.value = response.data.data.subscription
     modules.value = response.data.data.modules || []
     availablePlans.value = response.data.data.availablePlans || []
-    
+
     // Store original module state
     originalModuleState.value = modules.value.filter(m => m.is_enabled).map(m => m.id)
   } catch (error) {
     console.error('Error fetching subscription:', error)
-    alert('Failed to load subscription details')
+    toast.error('Failed to load subscription details')
   }
 }
 
@@ -365,60 +367,60 @@ const toggleModule = (moduleId) => {
 
 const saveModules = async () => {
   const enabledModules = modules.value.filter(m => m.is_enabled).map(m => m.id)
-  
+
   try {
     await api.post(`/super-admin/subscriptions/${route.params.id}/modules`, {
       modules: enabledModules
     })
-    alert('Modules updated successfully')
+    toast.success('Modules updated successfully')
     originalModuleState.value = enabledModules
     await fetchSubscription()
   } catch (error) {
     console.error('Error saving modules:', error)
-    alert(error.response?.data?.message || 'Failed to save modules')
+    toast.error(error.response?.data?.message || 'Failed to save modules')
   }
 }
 
 const changePlan = async () => {
   if (!selectedPlanId.value) return
-  
+
   try {
     await api.post(`/super-admin/subscriptions/${route.params.id}/change-plan`, {
       subscription_plan_id: selectedPlanId.value,
       prorate: prorate.value
     })
-    alert('Plan changed successfully')
+    toast.success('Plan changed successfully')
     showChangePlanModal.value = false
     selectedPlanId.value = null
     prorate.value = false
     await fetchSubscription()
   } catch (error) {
     console.error('Error changing plan:', error)
-    alert(error.response?.data?.message || 'Failed to change plan')
+    toast.error(error.response?.data?.message || 'Failed to change plan')
   }
 }
 
 const cancelSubscription = async () => {
-  if (!confirm('Are you sure you want to cancel this subscription?')) return
-  
+  if (!window.confirm('Are you sure you want to cancel this subscription?')) return
+
   try {
     await api.post(`/super-admin/subscriptions/${route.params.id}/cancel`)
-    alert('Subscription cancelled successfully')
+    toast.success('Subscription cancelled successfully')
     await fetchSubscription()
   } catch (error) {
     console.error('Error cancelling subscription:', error)
-    alert('Failed to cancel subscription')
+    toast.error('Failed to cancel subscription')
   }
 }
 
 const reactivateSubscription = async () => {
   try {
     await api.post(`/super-admin/subscriptions/${route.params.id}/reactivate`)
-    alert('Subscription reactivated successfully')
+    toast.success('Subscription reactivated successfully')
     await fetchSubscription()
   } catch (error) {
     console.error('Error reactivating subscription:', error)
-    alert('Failed to reactivate subscription')
+    toast.error('Failed to reactivate subscription')
   }
 }
 

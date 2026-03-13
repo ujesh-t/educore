@@ -269,9 +269,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useAppToast()
 
 const invoice = ref(null)
 const payments = ref([])
@@ -302,7 +304,7 @@ const fetchInvoice = async () => {
     payments.value = response.data?.data?.invoice?.payments || []
   } catch (error) {
     console.error('Error fetching invoice:', error)
-    alert('Failed to load invoice details')
+    toast.error('Failed to load invoice details')
   } finally {
     loading.value = false
   }
@@ -321,7 +323,7 @@ const recordPayment = () => {
 
 const submitPayment = async () => {
   if (!paymentForm.value.amount || paymentForm.value.amount <= 0) {
-    alert('Please enter a valid amount')
+    toast.error('Please enter a valid amount')
     return
   }
 
@@ -330,25 +332,25 @@ const submitPayment = async () => {
     await api.post(`/super-admin/invoices/${invoice.value.id}/record-payment`, paymentForm.value)
     showPaymentModal.value = false
     await fetchInvoice()
-    alert('Payment recorded successfully')
+    toast.success('Payment recorded successfully')
   } catch (error) {
     console.error('Error recording payment:', error)
-    alert(error.response?.data?.message || 'Failed to record payment')
+    toast.error(error.response?.data?.message || 'Failed to record payment')
   } finally {
     processingPayment.value = false
   }
 }
 
 const cancelInvoice = async () => {
-  if (!confirm('Are you sure you want to cancel this invoice?')) return
+  if (!window.confirm('Are you sure you want to cancel this invoice?')) return
 
   try {
     await api.post(`/super-admin/invoices/${invoice.value.id}/cancel`)
     await fetchInvoice()
-    alert('Invoice cancelled successfully')
+    toast.success('Invoice cancelled successfully')
   } catch (error) {
     console.error('Error cancelling invoice:', error)
-    alert(error.response?.data?.message || 'Failed to cancel invoice')
+    toast.error(error.response?.data?.message || 'Failed to cancel invoice')
   }
 }
 
@@ -369,7 +371,7 @@ const viewSubscription = () => {
 }
 
 const sendReminder = () => {
-  alert('Reminder email functionality to be implemented')
+  toast.info('Reminder email functionality to be implemented')
 }
 
 const formatDate = (date) => {

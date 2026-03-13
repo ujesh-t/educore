@@ -67,9 +67,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const modules = ref([])
 const moduleStats = ref({})
+const toast = useAppToast()
 
 const fetchModules = async () => {
   try {
@@ -99,7 +101,7 @@ const getModuleStats = (moduleKey) => {
 
 const showSchoolsForModule = (module) => {
   // Navigate to schools view with filter
-  alert(`Module: ${module.name}\nEnabled in ${getModuleStats(module.key)} schools\n\n(This would open a modal/list of schools with this module enabled)`)
+  toast.info(`Module: ${module.name}\nEnabled in ${getModuleStats(module.key)} schools\n\n(This would open a modal/list of schools with this module enabled)`)
 }
 
 onMounted(() => {

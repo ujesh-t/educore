@@ -338,8 +338,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const router = useRouter()
+const toast = useAppToast()
 const invoices = ref([])
 const schools = ref([])
 const stats = ref({})
@@ -436,7 +438,7 @@ const fetchInvoices = async () => {
 
 const createInvoice = async () => {
   if (!createForm.value.school_id) {
-    alert('Please select a school')
+    toast.error('Please select a school')
     return
   }
 
@@ -445,10 +447,10 @@ const createInvoice = async () => {
     closeCreateModal()
     await fetchInvoices()
     await fetchStats()
-    alert('Invoice created successfully')
+    toast.success('Invoice created successfully')
   } catch (error) {
     console.error('Error creating invoice:', error)
-    alert(error.response?.data?.message || 'Failed to create invoice')
+    toast.error(error.response?.data?.message || 'Failed to create invoice')
   }
 }
 
@@ -457,12 +459,12 @@ const generateInvoices = async () => {
   try {
     // Note: This would call a backend endpoint that runs the artisan command
     // For now, we'll show a message
-    alert('Invoice generation started. This runs in the background. Check the logs for progress.')
+    toast.info('Invoice generation started. This runs in the background. Check the logs for progress.')
     // In production, you'd call: await api.post('/super-admin/invoices/generate', generateForm.value)
     showGenerateModal.value = false
   } catch (error) {
     console.error('Error generating invoices:', error)
-    alert(error.response?.data?.message || 'Failed to generate invoices')
+    toast.error(error.response?.data?.message || 'Failed to generate invoices')
   } finally {
     generating.value = false
   }
@@ -482,7 +484,7 @@ const recordPayment = (invoice) => {
 
 const submitPayment = async () => {
   if (!paymentForm.value.amount || paymentForm.value.amount <= 0) {
-    alert('Please enter a valid amount')
+    toast.error('Please enter a valid amount')
     return
   }
 
@@ -492,10 +494,10 @@ const submitPayment = async () => {
     showPaymentModal.value = false
     await fetchInvoices()
     await fetchStats()
-    alert('Payment recorded successfully')
+    toast.success('Payment recorded successfully')
   } catch (error) {
     console.error('Error recording payment:', error)
-    alert(error.response?.data?.message || 'Failed to record payment')
+    toast.error(error.response?.data?.message || 'Failed to record payment')
   } finally {
     processingPayment.value = false
   }

@@ -140,9 +140,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const router = useRouter()
 const route = useRoute()
+const toast = useAppToast()
 
 const plan = ref(null)
 const allModules = ref([])
@@ -170,7 +172,7 @@ const fetchPlanModules = async () => {
     originalModules.value = allModules.value.filter(m => m.is_assigned).map(m => m.key)
   } catch (error) {
     console.error('Error fetching plan modules:', error)
-    alert('Failed to load plan modules')
+    toast.error('Failed to load plan modules')
   }
 }
 
@@ -193,7 +195,7 @@ const saveModules = async () => {
   const selectedModules = allModules.value.filter(m => m.is_assigned).map(m => m.key)
 
   if (selectedModules.length === 0) {
-    alert('Please select at least one module for this plan')
+    toast.error('Please select at least one module for this plan')
     return
   }
 
@@ -201,11 +203,11 @@ const saveModules = async () => {
     await api.post(`/super-admin/plans/${route.params.id}/modules`, {
       modules: selectedModules
     })
-    alert('Plan modules updated successfully!')
+    toast.success('Plan modules updated successfully!')
     originalModules.value = selectedModules
   } catch (error) {
     console.error('Error saving modules:', error)
-    alert(error.response?.data?.message || 'Failed to save modules')
+    toast.error(error.response?.data?.message || 'Failed to save modules')
   }
 }
 

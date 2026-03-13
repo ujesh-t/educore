@@ -426,7 +426,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
+const toast = useAppToast()
 const schools = ref([])
 const availablePlans = ref([])
 const showSchoolModal = ref(false)
@@ -500,7 +502,7 @@ const fetchSchools = async () => {
     }
   } catch (error) {
     console.error('Error fetching schools:', error)
-    alert('Failed to fetch schools')
+    toast.error('Failed to fetch schools')
   }
 }
 
@@ -581,13 +583,13 @@ const closeSchoolModal = () => {
 
 const saveSchool = async () => {
   if (!schoolForm.value.name) {
-    alert('School name is required')
+    toast.error('School name is required')
     return
   }
 
   if (!isEditMode.value) {
     if (!schoolForm.value.admin_name || !schoolForm.value.admin_email || !schoolForm.value.admin_password) {
-      alert('Admin account details are required for new schools')
+      toast.error('Admin account details are required for new schools')
       return
     }
   }
@@ -596,16 +598,16 @@ const saveSchool = async () => {
   try {
     if (isEditMode.value) {
       await api.put(`/super-admin/schools/${selectedSchool.value.id}`, schoolForm.value)
-      alert('School updated successfully')
+      toast.success('School updated successfully')
     } else {
       await api.post('/super-admin/schools', schoolForm.value)
-      alert('School created successfully')
+      toast.success('School created successfully')
     }
     closeSchoolModal()
     await fetchSchools()
   } catch (error) {
     console.error('Error saving school:', error)
-    alert(error.response?.data?.message || 'Failed to save school')
+    toast.error(error.response?.data?.message || 'Failed to save school')
   } finally {
     isSaving.value = false
   }
@@ -663,7 +665,7 @@ const toggleModule = (moduleId) => {
 
 const saveSubscription = async () => {
   if (!subscriptionData.value?.subscription?.id) {
-    alert('No subscription found for this school')
+    toast.error('No subscription found for this school')
     return
   }
 
@@ -688,45 +690,45 @@ const saveSubscription = async () => {
       })
     }
 
-    alert('Subscription updated successfully')
+    toast.success('Subscription updated successfully')
     closeSubscriptionModal()
     await fetchSchools()
   } catch (error) {
     console.error('Error updating subscription:', error)
-    alert(error.response?.data?.message || 'Failed to update subscription')
+    toast.error(error.response?.data?.message || 'Failed to update subscription')
   } finally {
     isSaving.value = false
   }
 }
 
 const cancelSubscription = async () => {
-  if (!confirm('Are you sure you want to cancel this subscription?')) return
+  if (!window.confirm('Are you sure you want to cancel this subscription?')) return
 
   isSaving.value = true
   try {
     const subscriptionId = subscriptionData.value.subscription.id
     await api.post(`/super-admin/subscriptions/${subscriptionId}/cancel`)
-    alert('Subscription cancelled successfully')
+    toast.success('Subscription cancelled successfully')
     closeSubscriptionModal()
     await fetchSchools()
   } catch (error) {
     console.error('Error cancelling subscription:', error)
-    alert(error.response?.data?.message || 'Failed to cancel subscription')
+    toast.error(error.response?.data?.message || 'Failed to cancel subscription')
   } finally {
     isSaving.value = false
   }
 }
 
 const toggleSchoolStatus = async (school) => {
-  if (!confirm(`Are you sure you want to ${school.is_active ? 'deactivate' : 'activate'} this school?`)) return
+  if (!window.confirm(`Are you sure you want to ${school.is_active ? 'deactivate' : 'activate'} this school?`)) return
 
   try {
     await api.post(`/super-admin/schools/${school.id}/toggle-status`)
-    alert('School status updated')
+    toast.success('School status updated')
     await fetchSchools()
   } catch (error) {
     console.error('Error toggling school status:', error)
-    alert('Failed to update school status')
+    toast.error('Failed to update school status')
   }
 }
 

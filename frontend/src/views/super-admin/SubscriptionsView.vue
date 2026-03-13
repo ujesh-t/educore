@@ -228,8 +228,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useAppToast } from '@/composables/useToast'
 
 const router = useRouter()
+const toast = useAppToast()
 const subscriptions = ref([])
 const schools = ref([])
 const availablePlans = ref([])
@@ -317,18 +319,18 @@ const changePage = (page) => {
 
 const createSubscription = async () => {
   if (!formData.value.school_id || !formData.value.subscription_plan_id) {
-    alert('Please select a school and plan')
+    toast.error('Please select a school and plan')
     return
   }
 
   try {
     await api.post('/super-admin/subscriptions', formData.value)
-    alert('Subscription created successfully')
+    toast.success('Subscription created successfully')
     closeCreateModal()
     await fetchSubscriptions()
   } catch (error) {
     console.error('Error creating subscription:', error)
-    alert(error.response?.data?.message || 'Failed to create subscription')
+    toast.error(error.response?.data?.message || 'Failed to create subscription')
   }
 }
 
