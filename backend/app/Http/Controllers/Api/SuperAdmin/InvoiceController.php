@@ -7,12 +7,14 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\School;
 use App\Models\Subscription;
+use App\Traits\SendsNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class InvoiceController extends Controller
 {
+    use SendsNotifications;
     /**
      * Display a listing of invoices.
      */
@@ -224,6 +226,19 @@ class InvoiceController extends Controller
             $invoice->save();
 
             DB::commit();
+
+            // Send payment confirmation email
+            $school = $invoice->school;
+            if ($school && $school->email) {
+                $this->sendPaymentConfirmationNotification(
+                    $school->email,
+                    $school->name,
+                    $invoice->invoice_number,
+                    $validated['amount'],
+                    $validated['payment_method'],
+                    $payment->transaction_id
+                );
+            }
 
             return response()->json([
                 'success' => true,

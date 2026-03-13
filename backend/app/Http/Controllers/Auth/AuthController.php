@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Setting;
+use App\Traits\SendsNotifications;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,7 @@ use Str;
 
 class AuthController extends Controller
 {
+    use SendsNotifications;
     /**
      * Handle user login.
      */
@@ -138,6 +140,16 @@ class AuthController extends Controller
 
         AuditLog::log('register', $user, "New user registered: {$user->email}");
 
+        // Send welcome email
+        $this->sendWelcomeNotification(
+            $user->email,
+            $user->name,
+            [
+                'email' => $user->email,
+                'password' => $request->password,
+            ]
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Registration successful. Please login.',
@@ -195,23 +207,27 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)->first();
+        
+        // Generate reset token
+        $token = Password::createToken($user);
 
-        if ($status === Password::RESET_LINK_SENT) {
+        // Send password reset email using Resend
+        $result = $this->sendPasswordResetNotification($user->email, $user->name, $token);
+
+        if ($result['success']) {
             AuditLog::log('password_reset_requested', null, "Password reset requested for: {$request->email}");
-            
+
             return response()->json([
                 'success' => true,
-                'message' => __($status),
+                'message' => 'Password reset link sent to your email',
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => __($status),
-        ], 400);
+            'message' => $result['message'] ?? 'Failed to send password reset email',
+        ], 500);
     }
 
     /**
