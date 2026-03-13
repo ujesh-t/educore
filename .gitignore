@@ -1,0 +1,48 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+backend/vendor/
+backend/node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+
+# Cache
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitignore
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitignore
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitignore
+
+# Testing
+backend/phpunit.xml
+coverage/
+
+# Misc
+deploy/
